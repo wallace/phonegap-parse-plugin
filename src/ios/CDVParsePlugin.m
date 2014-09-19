@@ -3,6 +3,7 @@
 #import <Parse/Parse.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
+#import <ParseFacebookUtils/PFFacebookUtils.h>
 
 @implementation CDVParsePlugin
 
@@ -12,6 +13,7 @@
     NSString *appId = [command.arguments objectAtIndex:0];
     NSString *clientKey = [command.arguments objectAtIndex:1];
     [Parse setApplicationId:appId clientKey:clientKey];
+    [PFFacebookUtils initializeFacebook];
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -123,4 +125,18 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     [PFPush handlePush:userInfo];
 }
 
+- (BOOL)application:(UIApplication *)application 
+            openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication
+         annotation:(id)annotation {
+    return [FBAppCall handleOpenURL:url
+                  sourceApplication:sourceApplication
+                        withSession:[PFFacebookUtils session]];
+}
+ 
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [FBAppCall handleDidBecomeActiveWithSession:[PFFacebookUtils session]];
+}
+
 @end
+
